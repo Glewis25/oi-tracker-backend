@@ -111,3 +111,12 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+app.get('/', (req, res) => {
+  try {
+    console.log('GET / called');
+    res.json({ status: 'OI Tracker API is running!' });
+  } catch (error) {
+    console.error('Root endpoint error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
