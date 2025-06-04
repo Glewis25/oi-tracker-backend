@@ -8,11 +8,12 @@ app.use(express.json());
 
 // Your Supabase credentials
 const SUPABASE_URL = 'https://zsaqplqbigykndswsfct.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzYXFwbHFiaWd5a25kc3dzZmN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5NTk4MjYsImV4cCI6MjA2NDUzNTgyNn0._N-XTqi1ZCLCwcmn09AUjQKYYbiBDX3goD6XKtWszTw'; // <-- YOU NEED TO ADD THIS
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzYXFwbHFiaWd5a25kc3dzZmN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5NTk4MjYsImV4cCI6MjA2NDUzNTgyNn0._N-XTqi1ZCLCwcmn09AUjQKYYbiBDX3goD6XKtWszTw';
 const API_KEY = 'my-secret-api-key-12345';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-// Test Supabase connection immediately
+
+// ADD THIS DEBUGGING CODE HERE (RIGHT AFTER CREATING SUPABASE CLIENT):
 console.log('Testing Supabase connection...');
 supabase
   .from('options_oi')
@@ -25,13 +26,14 @@ supabase
       console.log('✅ Supabase connected! Table has', count, 'rows');
     }
   });
+
 // Test endpoint
 app.get('/', (req, res) => {
   console.log('GET / called');
   res.json({ status: 'OI Tracker API is running!' });
 });
 
-// Get options data
+// REPLACE YOUR ENTIRE /api/options-data ENDPOINT WITH THIS VERSION:
 app.get('/api/options-data', async (req, res) => {
   console.log('GET /api/options-data called');
   try {
@@ -51,16 +53,25 @@ app.get('/api/options-data', async (req, res) => {
       throw error;
     }
     
-    const formatted = (data || []).map(row => ({
-      ticker: row.ticker,
-      exp: row.expiry,
-      strike: `$${row.strike}`,
-      callPut: row.right === 'C' ? 'Call' : 'Put',
-      oiChange: row.oi_change,
-      pctChange: row.pct_change,
-      volume: row.volume,
-      lastPrice: row.last_price
-    }));
+    console.log('Got', data?.length || 0, 'rows from Supabase');
+    
+    const formatted = (data || []).map(row => {
+      try {
+        return {
+          ticker: row.ticker || '',
+          exp: row.expiry || '',
+          strike: row.strike ? `$${row.strike}` : '$0',
+          callPut: (row['right'] || row.right) === 'C' ? 'Call' : 'Put',
+          oiChange: row.oi_change || 0,
+          pctChange: row.pct_change || 0,
+          volume: row.volume || 0,
+          lastPrice: row.last_price || 0
+        };
+      } catch (e) {
+        console.error('Error formatting row:', row, e);
+        return null;
+      }
+    }).filter(Boolean);
     
     console.log('Sending response with', formatted.length, 'items');
     res.json({ data: formatted });
@@ -70,7 +81,7 @@ app.get('/api/options-data', async (req, res) => {
   }
 });
 
-// Push data endpoint
+// Push data endpoint (KEEP THIS AS IS)
 app.post('/api/push-data', async (req, res) => {
   console.log('POST /api/push-data called');
   
