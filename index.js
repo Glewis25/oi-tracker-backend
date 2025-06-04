@@ -12,7 +12,19 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const API_KEY = 'my-secret-api-key-12345';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
+// Test Supabase connection immediately
+console.log('Testing Supabase connection...');
+supabase
+  .from('options_oi')
+  .select('count', { count: 'exact' })
+  .then(({ count, error }) => {
+    if (error) {
+      console.error('❌ Supabase test failed:', error.message);
+      console.error('Full error:', error);
+    } else {
+      console.log('✅ Supabase connected! Table has', count, 'rows');
+    }
+  });
 // Test endpoint
 app.get('/', (req, res) => {
   console.log('GET / called');
