@@ -8,7 +8,7 @@ app.use(express.json());
 
 // Your Supabase credentials
 const SUPABASE_URL = 'https://zsaqplqbigykndswsfct.supabase.co';
-const SUPABASE_KEY = 'YOUR_FULL_SUPABASE_ANON_KEY_HERE'; // <-- YOU NEED TO ADD THIS
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzYXFwbHFiaWd5a25kc3dzZmN0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5NTk4MjYsImV4cCI6MjA2NDUzNTgyNn0._N-XTqi1ZCLCwcmn09AUjQKYYbiBDX3goD6XKtWszTw'; // <-- YOU NEED TO ADD THIS
 const API_KEY = 'my-secret-api-key-12345';
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
