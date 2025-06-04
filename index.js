@@ -1,3 +1,25 @@
+const express = require('express');
+const { createClient } = require('@supabase/supabase-js');
+const cors = require('cors');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Your Supabase credentials
+const SUPABASE_URL = 'https://zsaqplqbigykndswsfct.supabase.co';
+const SUPABASE_KEY = 'YOUR_FULL_SUPABASE_ANON_KEY_HERE'; // <-- YOU NEED TO ADD THIS
+const API_KEY = 'my-secret-api-key-12345';
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Test endpoint
+app.get('/', (req, res) => {
+  console.log('GET / called');
+  res.json({ status: 'OI Tracker API is running!' });
+});
+
+// Get options data
 app.get('/api/options-data', async (req, res) => {
   console.log('GET /api/options-data called');
   try {
@@ -12,14 +34,12 @@ app.get('/api/options-data', async (req, res) => {
       .order('oi_change', { ascending: false })
       .limit(100);
     
-    console.log('Supabase response:', { data, error });
-    
     if (error) {
       console.error('Supabase error:', error);
       throw error;
     }
     
-    const formatted = data.map(row => ({
+    const formatted = (data || []).map(row => ({
       ticker: row.ticker,
       exp: row.expiry,
       strike: `$${row.strike}`,
@@ -38,7 +58,33 @@ app.get('/api/options-data', async (req, res) => {
   }
 });
 
-app.get('/', (req, res) => {
-  console.log('GET / called');
-  res.json({ status: 'OI Tracker API is running!' });
+// Push data endpoint
+app.post('/api/push-data', async (req, res) => {
+  console.log('POST /api/push-data called');
+  
+  // Check API key
+  if (req.headers['x-api-key'] !== API_KEY) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const { data } = req.body;
+  
+  try {
+    console.log('Inserting', data.length, 'records to Supabase');
+    const { error } = await supabase
+      .from('options_oi')
+      .insert(data);
+    
+    if (error) throw error;
+    
+    res.json({ success: true, count: data.length });
+  } catch (error) {
+    console.error('Insert error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
